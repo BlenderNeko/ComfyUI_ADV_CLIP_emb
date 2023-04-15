@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-from tqdm import tqdm
+from tqdm.auto import trange
 
 class AdvancedCLIPTextEncode:
     @classmethod
@@ -53,12 +53,12 @@ class AdvancedCLIPTextEncode:
         #calc unweighted embeddings
         if attention_method != 'comfy' or renorm_method != 'none':
             unweighted_tokens = [[(t,1.0) for t, _,_ in x] for x in tokenized]
-            base_emb = clip.encode(unweighted_tokens, from_tokens=True)
+            base_emb = clip.encode_from_tokens(unweighted_tokens, from_tokens=True)
 
         #use comfy attention
         if attention_method == "comfy":
             weighted_tokens = [[(t,w) for t, w in zip(x, y)] for x, y in zip(tokens, weights)]
-            weighted_emb = clip.encode(weighted_tokens, from_tokens=True)
+            weighted_emb = clip.encode_from_tokens(weighted_tokens, from_tokens=True)
         else:
             weight_tensor = torch.tensor(weights, dtype=base_emb.dtype, device=base_emb.device)
             weight_tensor = weight_tensor.reshape(1,-1,1).expand(base_emb.shape)
@@ -72,15 +72,15 @@ class AdvancedCLIPTextEncode:
             word_count = np.max(word_ids)
             embs = []
             
-            iterator = tqdm(range(word_count), desc='Reweighting CLIP embedding', total=word_count)
-            for i in iterator:
+            for i in trange(word_count):
+                #TODO: if weight is 1 this can be skipped?
                 masked_tokens, mask = self.mask_word_id(tokens, word_ids, i+1, clip.tokenizer.end_token)
                 masked_tokens = [[(t,1.0) for t in x] for x in masked_tokens]
                 
                 mask = torch.tensor(mask, dtype=base_emb.dtype, device=base_emb.device)
                 mask = mask.reshape(1,-1,1).expand(base_emb.shape)
                 
-                emb = clip.encode(masked_tokens, from_tokens=True)
+                emb = clip.encode_from_tokens(masked_tokens, from_tokens=True)
                 emb = (base_emb - emb) * mask
                 embs.append(emb)
 

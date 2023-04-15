@@ -1,6 +1,6 @@
 ## Advanced CLIP Text Encode
 
-This repo contains a node for ComfyUI that allows for more control over the way prompt weighting should be interpreted.
+This repo contains a node for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted.
 
 ### node settings
 To achieve this, an Advanced Clip Text Encode node is introduced with the following 3 settings:
@@ -16,14 +16,14 @@ determines how token weights are normalized. Currently supports the following op
 determines how up/down weighting should be handled. Currently supports the following options:
 - **comfy**: the default in ComfyUI, CLIP vectors are lerped between the prompt and a completely empty prompt
 - **A1111**: CLip vectors are scaled by their weight
-- **comfy++**: Each word is lerped between the prompt and a prompt where the word is masked off. This is very expensive but the lerp direction might be more accurate/well behaved?
+- **comfy++**: Each word is lerped between the prompt and a prompt where the word is masked off. This is very expensive but the lerp direction might be more accurate/well behaved? This is similar to how [compel](https://github.com/damian0815/compel) does down-weighting, but here we use it for both down and up.
 
 #### renorm_method:
 determines how the CLIP embedding is scaled back, effects of this appear very minor. Currently supports the following options:
 - **none**: leaves the embeddings alone
 - **magnitude**: scales the embedding to recover the magnitude of the unweighted embedding.
 - **mean+std**: recovers the mean and standard deviation of the unweighted embedding.
-- **A1111**: scales the embedding to recover the mean of the unweighted embedding (no idea, don't ask).
+- **A1111**: scales the embedding to recover the mean of the unweighted embedding (if you feel the need to use this, the magnitude option does roughly the same thing but is more mathematically grounded).
 
 ### Intuition behind attention methods
 
@@ -36,3 +36,7 @@ As can be seen, in A1111 we use weights to travel on the line between the zero v
 Comfy also creates a direction starting from a single point but instead uses the vector embedding corresponding to a completely empty prompt. we are now traveling on a line that approximates the epitome of a certain thing. Despite the magnitude of the vector not growing as fast as in A1111 this is actually quite effective and can result in SD quite aggressively chasing concepts that are up-weighted.
 
 Comfy++ does not start from a single point but instead travels between the presence and absence of a concept in the prompt. Despite the idea being similar to that of comfy it is a lot less aggressive, and behaves more like A111.
+
+## TODOs:
+- [ ] Calculating all the required embeddings for comfy++ can be quite taxing, and as a result this option is fairly slow. skipping unweighted words can speed this process up considerably.
+- [ ] It'd be nice if we could mix different approaches with a mix clip embedding node (this should be 5 minutes of work).
