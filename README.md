@@ -1,8 +1,8 @@
 ## Advanced CLIP Text Encode
 
-This repo contains a node for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted.
+This repo contains 2 nodes for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted. And let's you mix different embeddings.
 
-### node settings
+### Advanced CLIP Text Encode node settings
 To achieve this, an Advanced Clip Text Encode node is introduced with the following 3 settings:
 
 #### token_normalization:
@@ -16,7 +16,7 @@ determines how token weights are normalized. Currently supports the following op
 determines how up/down weighting should be handled. Currently supports the following options:
 - **comfy**: the default in ComfyUI, CLIP vectors are lerped between the prompt and a completely empty prompt
 - **A1111**: CLip vectors are scaled by their weight
-- **comfy++**: Each word is lerped between the prompt and a prompt where the word is masked off. This is very expensive but the lerp direction might be more accurate/well behaved? This is similar to how [compel](https://github.com/damian0815/compel) does down-weighting, but here we use it for both down and up.
+- **comfy++**: Each word is lerped between the prompt and a prompt where the word is masked off. When a lot of up/down weighting is happening in the prompt this becomes quite expensive but the lerp direction might be more accurate/well behaved? This is similar to how [compel](https://github.com/damian0815/compel) does down-weighting, but here we use it for both down and up.
 
 #### renorm_method:
 determines how the CLIP embedding is scaled back, effects of this appear very minor. Currently supports the following options:
@@ -37,6 +37,11 @@ Comfy also creates a direction starting from a single point but instead uses the
 
 Comfy++ does not start from a single point but instead travels between the presence and absence of a concept in the prompt. Despite the idea being similar to that of comfy it is a lot less aggressive, and behaves more like A111.
 
+### Mix Clip Embeddings node
+
+The Mix Clip Embeddings node takes two conditionings as input and mixes them according to a mix factor. When 0.0 the output will fully be the embeddings in the top slot, and when 1.0 it will fully be those of the embeddings in the bottom slot. Only the area conditioning of the top slot will pass through the mix node.
+
+This node lets you interpolate between the different approaches given by the Advanced CLIP Text Encode node or even mix between completely different encodings. The only constraint here is that both encodings must be of the same size, if one of the prompts fits inside 77 tokens but the other prompt requires 154, the node will ignore the mixing factor and pass through the top embedding.
+
 ## TODOs:
-- [ ] Calculating all the required embeddings for comfy++ can be quite taxing, and as a result this option is fairly slow. skipping unweighted words can speed this process up considerably.
-- [ ] It'd be nice if we could mix different approaches with a mix clip embedding node (this should be 5 minutes of work).
+- [ ] smart area conditioning pass through logic

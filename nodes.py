@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from tqdm.auto import trange
+import pickle
 
 class AdvancedCLIPTextEncode:
     @classmethod
@@ -70,10 +71,13 @@ class AdvancedCLIPTextEncode:
         #calc attention by masking per word
         if attention_method == "comfy++":
             word_count = np.max(word_ids)
-            embs = []
+            embs = [torch.zeros_like(base_emb)]
+            wids, inds = np.unique(np.array(word_ids).reshape(-1), return_index=True)
+            weight_dict = dict(zip(wids ,np.array(weights).reshape(-1)[inds]))
             
             for i in trange(word_count):
-                #TODO: if weight is 1 this can be skipped?
+                if weight_dict[i+1] == 1.0:
+                    continue
                 masked_tokens, mask = self.mask_word_id(tokens, word_ids, i+1, clip.tokenizer.end_token)
                 masked_tokens = [[(t,1.0) for t in x] for x in masked_tokens]
                 
@@ -105,6 +109,36 @@ class AdvancedCLIPTextEncode:
 
         return ([[embeddings_final, {}]], )
     
+class MixCLIPEmbeddings:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+            "cond1":("CONDITIONING",),
+            "cond2": ("CONDITIONING",),
+            "mix": ("FLOAT", {"default": .5, "min": 0.0, "max": 1.0, "step": 0.01}),
+            }}
+    RETURN_TYPES = ("CONDITIONING",)
+    FUNCTION = "mix_embs"
+
+    CATEGORY = "conditioning"
+        
+    def mix_embs(self, cond1, cond2, mix):
+        conditioning = []
+        for c1, c2 in zip (cond1, cond2):
+            if c1[0].shape == c2[0].shape:
+                c_mixed = c1[0] * (1-mix) + c2[0] * mix
+            else:
+                print('warning, CLIP embedding size mismatch, ignoring mix')
+                c_mixed = c1[0]
+            conditioning.append([c_mixed, c1[1].copy()])
+        return (conditioning, )
+    
 NODE_CLASS_MAPPINGS = {
     "AdvancedCLIPTextEncode": AdvancedCLIPTextEncode,
+    "MixCLIPEmbeddings": MixCLIPEmbeddings,
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "AdvancedCLIPTextEncode" : "CLIP Text Encode (Advanced)",
+    "MixCLIPEmbeddings" : "Mix CLIP Embeddings"
 }
