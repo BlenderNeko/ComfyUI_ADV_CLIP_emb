@@ -51,12 +51,12 @@ class AdvancedCLIPTextEncode:
         if attention_method != 'comfy' or renorm_method != 'none':
             #calc unweighted embeddings
             unweighted_tokens = [[(t,1.0) for t, _,_ in x] for x in tokenized]
-            base_emb = clip.encode_from_tokens(unweighted_tokens, from_tokens=True)
+            base_emb = clip.encode_from_tokens(unweighted_tokens)
 
         if attention_method == "comfy":
             #use comfy attention
             weighted_tokens = [[(t,w) for t, w in zip(x, y)] for x, y in zip(tokens, weights)]
-            weighted_emb = clip.encode_from_tokens(weighted_tokens, from_tokens=True)
+            weighted_emb = clip.encode_from_tokens(weighted_tokens)
         else:
             weight_tensor = torch.tensor(weights, dtype=base_emb.dtype, device=base_emb.device)
             weight_tensor = weight_tensor.reshape(1,-1,1).expand(base_emb.shape)
@@ -77,7 +77,7 @@ class AdvancedCLIPTextEncode:
                     mask = torch.tensor(mask, dtype=base_emb.dtype, device=base_emb.device)
                     mask = mask.reshape(1,-1,1).expand(base_emb.shape)
                     
-                    emb = clip.encode_from_tokens(masked_tokens, from_tokens=True)
+                    emb = clip.encode_from_tokens(masked_tokens)
                     emb = (base_emb - emb) * mask
                     embs.append(emb)
 
