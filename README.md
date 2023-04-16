@@ -37,6 +37,12 @@ Comfy also creates a direction starting from a single point but instead uses the
 
 Comfy++ does not start from a single point but instead travels between the presence and absence of a concept in the prompt. Despite the idea being similar to that of comfy it is a lot less aggressive, and behaves more like A111.
 
+### visual comparison of the different methods
+
+Below a short clip of the prompt `cinematic wide shot of the ocean, beach, (palmtrees:1.0), at sunset, milkyway`, where the weight of palmtree slowly increasses from 1.0 to 2.0 in 20 steps.
+
+https://user-images.githubusercontent.com/126974546/232336840-e9076b7c-3799-4335-baaa-992a6b8cad8a.mp4
+
 ### Mix Clip Embeddings node
 
 The Mix Clip Embeddings node takes two conditionings as input and mixes them according to a mix factor. When 0.0 the output will fully be the embeddings in the top slot, and when 1.0 it will fully be those of the embeddings in the bottom slot. Only the area conditioning of the top slot will pass through the mix node.
@@ -45,3 +51,6 @@ This node lets you interpolate between the different approaches given by the Adv
 
 ## TODOs:
 - [ ] smart area conditioning pass through logic
+
+
+
