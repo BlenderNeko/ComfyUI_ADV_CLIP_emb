@@ -3,7 +3,7 @@
 This repo contains 2 nodes for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted. And let's you mix different embeddings.
 
 ## Advanced CLIP Text Encode node settings
-To achieve this, an Advanced Clip Text Encode node is introduced with the following 3 settings:
+To achieve this, an Advanced Clip Text Encode node is introduced with the following 2 settings:
 
 ### token_normalization:
 determines how token weights are normalized. Currently supports the following options:
