@@ -142,8 +142,7 @@ def A1111_renorm(base_emb, weighted_emb):
     embeddings_final = (base_emb.mean() / weighted_emb.mean()) * weighted_emb
     return embeddings_final
 
-def advanced_encode(clip, text, token_normalization, weight_interpretation, w_max=1.0):
-    tokenized = clip.tokenize(text, return_word_ids=True)
+def advanced_encode_from_tokens(clip, tokenized, token_normalization, weight_interpretation, w_max=1.0):
     tokens = [[t for t,_,_ in x] for x in tokenized]
     weights = [[w for _,w,_ in x] for x in tokenized]
     word_ids = [[wid for _,_,wid in x] for x in tokenized]
@@ -188,3 +187,8 @@ def advanced_encode(clip, text, token_normalization, weight_interpretation, w_ma
         weighted_emb, _ = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
 
     return weighted_emb
+
+def advanced_encode(clip, text, token_normalization, weight_interpretation, w_max=1.0):
+    tokenized = clip.tokenize(text, return_word_ids=True)
+    return advanced_encode_from_tokens(clip, tokenized, token_normalization, weight_interpretation, w_max)
+    
