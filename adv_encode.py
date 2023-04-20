@@ -104,7 +104,7 @@ def down_weight(tokens, weights, word_ids, base_emb, clip):
     w, w_inv = np.unique(weights,return_inverse=True)
 
     if np.sum(w < 1) == 0:
-        return (base_emb, tokens)
+        return base_emb
     #m_token = (clip.tokenizer.end_token, 1.0) if  clip.tokenizer.pad_with_end else (0,1.0)
     #using the comma token as a masking token seems to work better than aos tokens for SD 1.x
     m_token = (266, 1.0)
@@ -125,7 +125,7 @@ def down_weight(tokens, weights, word_ids, base_emb, clip):
     w_mix = torch.tensor(w_mix, dtype=embs.dtype, device=embs.device).reshape((-1,1,1))
 
     weighted_emb = (w_mix * embs).sum(axis=0, keepdim=True)
-    return (weighted_emb, masked_tokens)
+    return weighted_emb
 
 def scale_emb_to_mag(base_emb, weighted_emb):
     norm_base = torch.linalg.norm(base_emb)
@@ -175,20 +175,19 @@ def advanced_encode_from_tokens(clip, tokenized, token_normalization, weight_int
     if weight_interpretation == "compel":
         pos_tokens = [[(t,w) if w >= 1.0 else (t,1.0) for t, w in zip(x, y)] for x, y in zip(tokens, weights)]
         weighted_emb = clip.encode_from_tokens(pos_tokens)
-        weighted_emb, _ = down_weight(pos_tokens, weights, word_ids, weighted_emb, clip)
+        weighted_emb = down_weight(pos_tokens, weights, word_ids, weighted_emb, clip)
     
     if weight_interpretation == "comfy++":
-        weighted_emb, masked_neg_tokens = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
+        weighted_emb = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
         weights = [[w if w > 1.0 else 1.0 for w in x] for x in weights]
-        weighted_emb = from_masked(masked_neg_tokens, weights, word_ids, weighted_emb, clip)
+        weighted_emb = from_masked(unweighted_tokens, weights, word_ids, weighted_emb, clip)
 
     if weight_interpretation == "down_weight":
         weights = scale_to_norm(weights, word_ids, w_max)
-        weighted_emb, _ = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
+        weighted_emb = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
 
     return weighted_emb
 
 def advanced_encode(clip, text, token_normalization, weight_interpretation, w_max=1.0):
     tokenized = clip.tokenize(text, return_word_ids=True)
     return advanced_encode_from_tokens(clip, tokenized, token_normalization, weight_interpretation, w_max)
-    
