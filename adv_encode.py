@@ -49,8 +49,9 @@ def mask_word_id(tokens, word_ids, target_id, mask_token):
 def batched_clip_encode(tokens, clip, num_chunks):
     embs = []
     for e in _grouper(32, tokens):
-        embs.append(clip.encode_from_tokens(e))
-        
+        enc = clip.encode_from_tokens(e)
+        enc = enc.reshape((len(e), clip.tokenizer.max_length, -1))
+        embs.append(enc)
     embs = torch.cat(embs)
     embs = embs.reshape((len(tokens) // num_chunks, clip.tokenizer.max_length * num_chunks, -1))
     return embs
@@ -62,7 +63,7 @@ def from_masked(tokens, weights, word_ids, base_emb, clip):
                            if w != 1.0)
 
         if len(weight_dict) == 0:
-            return base_emb
+            return torch.zeros_like(base_emb)
 
         weight_tensor = torch.tensor(weights, dtype=base_emb.dtype, device=base_emb.device)
         weight_tensor = weight_tensor.reshape(1,-1,1).expand(base_emb.shape)
@@ -89,9 +90,7 @@ def from_masked(tokens, weights, word_ids, base_emb, clip):
         
         embs = (base_emb.expand(embs.shape) - embs) * masks
         embs = embs.sum(axis=0, keepdim=True)
-
-        weighted_emb = base_emb + ((weight_tensor - 1) * embs)
-        return weighted_emb
+        return ((weight_tensor - 1) * embs)
 
 def mask_inds(tokens, inds, mask_token):
     clip_len = len(tokens[0])
@@ -180,7 +179,7 @@ def advanced_encode_from_tokens(clip, tokenized, token_normalization, weight_int
     if weight_interpretation == "comfy++":
         weighted_emb = down_weight(unweighted_tokens, weights, word_ids, base_emb, clip)
         weights = [[w if w > 1.0 else 1.0 for w in x] for x in weights]
-        weighted_emb = from_masked(unweighted_tokens, weights, word_ids, weighted_emb, clip)
+        weighted_emb += from_masked(unweighted_tokens, weights, word_ids, base_emb, clip)
 
     if weight_interpretation == "down_weight":
         weights = scale_to_norm(weights, word_ids, w_max)
