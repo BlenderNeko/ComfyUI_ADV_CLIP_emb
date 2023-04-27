@@ -45,11 +45,11 @@ class MixCLIPEmbeddings:
         return (conditioning, )
     
 NODE_CLASS_MAPPINGS = {
-    "AdvancedCLIPTextEncode": AdvancedCLIPTextEncode,
-    "MixCLIPEmbeddings": MixCLIPEmbeddings,
+    "BNK_CLIPTextEncodeAdvanced": AdvancedCLIPTextEncode,
+    "BNK_MixCLIPEmbeddings": MixCLIPEmbeddings,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "AdvancedCLIPTextEncode" : "CLIP Text Encode (Advanced)",
-    "MixCLIPEmbeddings" : "Mix CLIP Embeddings"
+    "BNK_CLIPTextEncodeAdvanced" : "CLIP Text Encode (Advanced)",
+    "BNK_MixCLIPEmbeddings" : "Mix CLIP Embeddings"
 }
