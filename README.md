@@ -1,23 +1,26 @@
 # Advanced CLIP Text Encode
 
-This repo contains 2 nodes for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted. And let's you mix different embeddings.
+This repo contains 4 nodes for [ComfyUI](https://github.com/comfyanonymous/ComfyUI) that allows for more control over the way prompt weighting should be interpreted.
 
-## Advanced CLIP Text Encode node settings
-To achieve this, an Advanced Clip Text Encode node is introduced with the following 2 settings:
+---
 
-### token_normalization:
+### BNK_CLIPTextEncodeAdvanced node settings
+To achieve this, a CLIP Text Encode (Advanced) node is introduced with the following 2 settings:
+
+#### token_normalization:
 determines how token weights are normalized. Currently supports the following options:
-- **none**: does not alter the weights
-- **mean**: shifts weights such that the mean of all meaningful tokens becomes 1
-- **length**: divides token weight of long words or embeddings between all the tokens. It does so in a manner that the magnitude of the weight change remains constant between different lengths of tokens. E.g. if a word is expressed as 3 tokens and it has a weight of 1.5 all tokens get a weight of around 1.29 because sqrt(3 * pow(0.35, 2)) = 0.5
-- **length+mean**: divides token weight of long words, and then shifts the mean to 1
+- **none**: does not alter the weights.
+- **mean**: shifts weights such that the mean of all meaningful tokens becomes 1.
+- **length**: divides token weight of long words or embeddings between all the tokens. It does so in a manner that the magnitude of the weight change remains constant between different lengths of tokens. E.g. if a word is expressed as 3 tokens and it has a weight of 1.5 all tokens get a weight of around 1.29 because sqrt(3 * pow(0.35, 2)) = 0.5.
+- **length+mean**: divides token weight of long words, and then shifts the mean to 1.
 
-### weight_interpretation:
+#### weight_interpretation:
 Determines how up/down weighting should be handled. Currently supports the following options:
-- **comfy**: the default in ComfyUI, CLIP vectors are lerped between the prompt and a completely empty prompt
+- **comfy**: the default in ComfyUI, CLIP vectors are lerped between the prompt and a completely empty prompt.
 - **A1111**: CLip vectors are scaled by their weight
-- **compel**: Interprets weights the same as in [compel](https://github.com/damian0815/compel). Compel up-weights the same as comfy, but mixes masked embeddings to accomplish down-weighting (more on this later)
-- **comfy++**: When up-weighting, each word is lerped between the prompt and a prompt where the word is masked off. When down-weighting uses the same method as compel.
+- **compel**: Interprets weights similar to [compel](https://github.com/damian0815/compel). Compel up-weights the same as comfy, but mixes masked embeddings to accomplish down-weighting (more on this later).
+- **comfy++**: When up-weighting, each word is lerped between the prompt and a prompt where the word is masked off. Additionally uses compel style down-weighting.
+- **down_weight**: rescales weights such that the maximum weight is one. This means that you will only ever be down-weighting. Uses compel style down-weighting.
 
 <details>
 <summary>
@@ -38,7 +41,7 @@ Comfy++ does not start from a single point but instead travels between the prese
 
 #### visual comparison of the different methods
 
-Below a short clip of the prompt `cinematic wide shot of the ocean, beach, (palmtrees:1.0), at sunset, milkyway`, where the weight of palmtree slowly increasses from 1.0 to 2.0 in 20 steps.
+Below a short clip of the prompt `cinematic wide shot of the ocean, beach, (palmtrees:1.0), at sunset, milkyway`, where the weight of palmtree slowly increasses from 1.0 to 2.0 in 20 steps. (made using [silicon29](https://huggingface.co/Xynon/SD-Silicon) in SD 1.5)
 
 https://user-images.githubusercontent.com/126974546/232336840-e9076b7c-3799-4335-baaa-992a6b8cad8a.mp4
 
@@ -49,12 +52,57 @@ One of the issues with using the above methods for down-weighting is that the em
 - `B` = `_ and apples in a bowl`
 -  `C` = `_ and _ in a bowl`
 
-which it then mixes into a final embedding `0.2 * A + 0.3 * B + 0.5 * C`. This way we truely only have 0.2 of the infuence of pears in our entire embedding, and 0.5 of apples.
+which it then mixes into a final embedding `0.2 * A + 0.3 * B + 0.5 * C`. This way we truly only have 0.2 of the influence of pears in our entire embedding, and 0.5 of apples.
 
 </details>
 
-## Mix Clip Embeddings node
+---
 
-The Mix Clip Embeddings node takes two conditionings as input and mixes them according to a mix factor. When 0.0 the output will fully be the embeddings in the top slot, and when 1.0 it will fully be those of the embeddings in the bottom slot. Only the area conditioning of the top slot will pass through the mix node.
+### Mix Clip Embeddings node (Depricated)
 
-This node lets you interpolate between the different approaches given by the Advanced CLIP Text Encode node or even mix between completely different encodings. The only constraint here is that both encodings must be of the same size, if one of the prompts fits inside 77 tokens but the other prompt requires 154, the node will ignore the mixing factor and pass through the top embedding.
+The functionality of this node can now be found in the core ComfyUI nodes.
+
+---
+
+## SDXL support
+
+To support SDXL the following settings and nodes are provided:
+
+---
+
+### BNK_CLIPTextEncodeAdvanced node settings
+
+The CLIP Text Encode (Advanced) node lets you apply some of the weighting strategies to the pooled output via the **affect_pooled** option. (effects have been rather minor).
+
+---
+
+### BNK_CLIPTextEncodeSDXLAdvanced
+
+The CLIP Text Encode SDXL (Advanced) node provides the same settings as its non SDXL version. In addition it also comes with 2 text fields to send different texts to the two CLIP models. and with the following setting:
+
+- **balance**: tradeoff between the CLIP and openCLIP models. At 0.0 the embedding only contains the CLIP model output and the contribution of the openCLIP model is zeroed out. At 1.0 the embedding only contains the openCLIP model and the CLIP model is entirely zeroed out.
+
+This node mainly exists for experimentation.
+
+---
+
+### BNK_AddCLIPSDXLParams
+
+the Add CLIP SDXL Params node adds the following SDXL parameters to a conditioning:
+
+- **width**: width of the image crop.
+- **height**: height of the image crop.
+- **crop_w**: left pixel of the crop.
+- **crop_h**: top pixel of the crop.
+- **target_width**: width of the original image.
+- **target_height**: height of the original image.
+
+----
+
+### BNK_AddCLIPSDXLRParams
+
+the Add CLIP SDXL Refiner Params node adds the following refiner parameters to a conditioning:
+
+- **width**: width of the image.
+- **height**: height of the image.
+- **ascore**: aesthetic score of the image.
