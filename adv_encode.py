@@ -68,7 +68,7 @@ def from_masked(tokens, weights, word_ids, base_emb, length, encode_func, m_toke
                            if w != 1.0)
 
         if len(weight_dict) == 0:
-            return torch.zeros_like(base_emb), torch.zeros_like(pooled_base)
+            return torch.zeros_like(base_emb), base_emb[0,length-1:length,:]
 
         weight_tensor = torch.tensor(weights, dtype=base_emb.dtype, device=base_emb.device)
         weight_tensor = weight_tensor.reshape(1,-1,1).expand(base_emb.shape)

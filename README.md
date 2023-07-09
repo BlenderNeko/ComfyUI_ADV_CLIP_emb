@@ -66,13 +66,7 @@ The functionality of this node can now be found in the core ComfyUI nodes.
 
 ## SDXL support
 
-To support SDXL the following settings and nodes are provided:
-
----
-
-### BNK_CLIPTextEncodeAdvanced node settings
-
-The CLIP Text Encode (Advanced) node lets you apply some of the weighting strategies to the pooled output via the **affect_pooled** option. (effects have been rather minor).
+To support SDXL the following settings and nodes are provided. Note that the CLIP Text Encode (Advanced) node also works just fine for SDXL :
 
 ---
 

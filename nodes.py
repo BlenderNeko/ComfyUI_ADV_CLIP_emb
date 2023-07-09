@@ -9,7 +9,7 @@ class AdvancedCLIPTextEncode:
             "clip": ("CLIP", ),
             "token_normalization": (["none", "mean", "length", "length+mean"],),
             "weight_interpretation": (["comfy", "A1111", "compel", "comfy++" ,"down_weight"],),
-            "affect_pooled": (["disable", "enable"],),
+            #"affect_pooled": (["disable", "enable"],),
             }}
     
     RETURN_TYPES = ("CONDITIONING",)
@@ -17,7 +17,7 @@ class AdvancedCLIPTextEncode:
 
     CATEGORY = "conditioning/advanced"
 
-    def encode(self, clip, text, token_normalization, weight_interpretation, affect_pooled):
+    def encode(self, clip, text, token_normalization, weight_interpretation, affect_pooled='disable'):
         embeddings_final, pooled = advanced_encode(clip, text, token_normalization, weight_interpretation, w_max=1.0, apply_to_pooled=affect_pooled=='enable')
         return ([[embeddings_final, {"pooled_output": pooled}]], )
 
@@ -87,7 +87,7 @@ class AdvancedCLIPTextEncodeSDXL:
             "clip": ("CLIP", ),
             "token_normalization": (["none", "mean", "length", "length+mean"],),
             "weight_interpretation": (["comfy", "A1111", "compel", "comfy++", "down_weight"],),
-            "affect_pooled": (["disable", "enable"],),
+            #"affect_pooled": (["disable", "enable"],),
             "balance": ("FLOAT", {"default": .5, "min": 0.0, "max": 1.0, "step": 0.01}),
             }}
     
@@ -96,7 +96,7 @@ class AdvancedCLIPTextEncodeSDXL:
 
     CATEGORY = "conditioning/advanced"
 
-    def encode(self, clip, text_l, text_g, token_normalization, weight_interpretation, affect_pooled, balance):
+    def encode(self, clip, text_l, text_g, token_normalization, weight_interpretation, balance, affect_pooled='disable'):
         embeddings_final, pooled = advanced_encode_XL(clip, text_l, text_g, token_normalization, weight_interpretation, w_max=1.0, clip_balance=balance, apply_to_pooled=affect_pooled == "enable")
         return ([[embeddings_final, {"pooled_output": pooled}]], )
         
