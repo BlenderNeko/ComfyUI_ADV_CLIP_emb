@@ -4,7 +4,7 @@ import itertools
 from math import gcd
 
 from comfy import model_management
-from comfy.sdxl_clip import SDXLClipModel
+from comfy.sdxl_clip import SDXLClipModel, SDXLRefinerClipModel, SDXLClipG
 
 def _grouper(n, iterable):
     it = iter(iterable)
