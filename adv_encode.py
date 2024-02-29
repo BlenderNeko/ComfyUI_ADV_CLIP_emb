@@ -223,7 +223,11 @@ def encode_token_weights_l(model, token_weight_pairs):
 
 def encode_token_weights(model, token_weight_pairs, encode_func):
     if model.layer_idx is not None:
-        model.cond_stage_model.clip_layer(model.layer_idx)
+        if hasattr(model.cond_stage_model, 'set_clip_options'):
+            model.cond_stage_model.set_clip_options({"layer": model.layer_idx})
+        else:
+            print(f"[ComfyUI_ADV_CLIP_emb] ComfyUI is outdated.")
+            model.cond_stage_model.clip_layer(model.layer_idx)
     
     model_management.load_model_gpu(model.patcher)
     return encode_func(model.cond_stage_model, token_weight_pairs)
