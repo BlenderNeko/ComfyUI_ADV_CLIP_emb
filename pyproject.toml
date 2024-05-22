@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_adv_clip_emb"
+description = "Advanced CLIP Text Encode (if you need A1111 like prompt. you need this. But Cutoff node includes this feature, already.)"
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/BlenderNeko/ComfyUI_ADV_CLIP_emb"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_ADV_CLIP_emb"
+Icon = ""
