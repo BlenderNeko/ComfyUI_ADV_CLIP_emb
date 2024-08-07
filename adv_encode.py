@@ -4,7 +4,8 @@ import itertools
 from math import gcd
 
 from comfy import model_management
-from comfy.sdxl_clip import SDXLClipModel, SDXLRefinerClipModel, SDXLClipG
+from comfy.sdxl_clip import (SDXLClipG, SDXLClipModel, SDXLRefinerClipModel,
+                             StableCascadeClipModel)
 
 def _grouper(n, iterable):
     it = iter(iterable)
@@ -262,6 +263,16 @@ def advanced_encode(clip, text, token_normalization, weight_interpretation, w_ma
                                                          return_pooled=True,
                                                          apply_to_pooled=apply_to_pooled)
         return prepareXL(embs_l, embs_g, pooled, clip_balance)
+    elif isinstance(clip.cond_stage_model, StableCascadeClipModel):
+        return advanced_encode_from_tokens(
+            tokenized['g'],
+            token_normalization,
+            weight_interpretation,
+            lambda x: encode_token_weights(clip, x, encode_token_weights_g),
+            w_max=w_max,
+            return_pooled=True,
+            apply_to_pooled=apply_to_pooled
+        )
     else:
         return advanced_encode_from_tokens(tokenized['l'],
                                            token_normalization, 
