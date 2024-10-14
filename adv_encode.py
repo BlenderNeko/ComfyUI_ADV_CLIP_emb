@@ -103,7 +103,7 @@ def from_masked(tokens, weights, word_ids, base_emb, length, encode_func, m_toke
         embs = embs.sum(axis=0, keepdim=True)
 
         pooled_start = pooled_base.expand(len(ws), -1)
-        ws = torch.tensor(ws).reshape(-1,1).expand(pooled_start.shape)
+        ws = torch.tensor(ws).to(pooled.device).reshape(-1,1).expand(pooled_start.shape)
         pooled = (pooled - pooled_start) * (ws - 1)
         pooled = pooled.mean(axis=0, keepdim=True)
 
